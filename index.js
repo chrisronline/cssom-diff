@@ -2,8 +2,8 @@ import webpage from 'webpage'
 import { diff } from 'deep-diff'
 
 const page = webpage.create()
-const url1 = 'https://github.com/chrisronline/angular-float-labels'
-const url2 = 'https://github.com/chrisronline/angular-promise-cache'
+const url1 = 'file:///Users/chrisroberson/Development/hudl/kickoff-css/index.html'//https://github.com/chrisronline/angular-float-labels'
+const url2 = 'file:///Users/chrisroberson/Development/hudl/kickoff-css/index2.html'//https://github.com/chrisronline/angular-promise-cache'
 
 const cssdom = () => {
   return () => {
@@ -13,7 +13,7 @@ const cssdom = () => {
 
       if (node.className) {
         if (typeof node.className === 'string') {
-          cls = '.' + node.className.replace(' ', ':');
+          cls = '.' + node.className.replace(/\s+/g, ':');
         }
         else if (node.className.baseVal) {
           cls = '.' + node.className.baseVal
@@ -36,7 +36,7 @@ const cssdom = () => {
 
     const getCssom = () => {
       const xpath = document.evaluate(
-        "/html/body//*[not(self::style) and not(self::script) and not(self::link) and not(self::noscript)]",
+        '/html/body//*[not(self::style) and not(self::script) and not(self::link) and not(self::noscript)]',
         document, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
 
       const map = {}
@@ -64,14 +64,30 @@ const cssdom = () => {
   }
 }
 
+const logDiff = ({ kind, path, lhs, rhs }) => {
+  let type = null
+  switch (kind) {
+    case 'E':
+      type = 'Edit'
+      break
+  }
+
+
+  console.log('======')
+  console.log('Type:', type)
+  console.log('Selector:', atob(path[0]))
+  console.log('Property:', path[1])
+  console.log('Original value:', lhs)
+  console.log('Changed value', rhs)
+  console.log('======')
+}
+
 page.open(url1, () => {
   const cssom1 = page.evaluate(cssdom())
   page.open(url2, () => {
     const cssom2 = page.evaluate(cssdom())
     const diffs = diff(cssom1, cssom2)
-    diffs.forEach(diff => {
-      console.log(diff.kind, diff.path.map(p => atob(p)).join(','), diff.lhs, diff.rhs)
-    })
+    diffs.forEach(logDiff)
     phantom.exit()
   })
 })
