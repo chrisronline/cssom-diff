@@ -54,6 +54,11 @@ const cssdom = () => {
           }
         }
 
+        const rect = node.getBoundingClientRect()
+        for (let rectKey in rect) {
+          styles['$' + rectKey] = rect[rectKey]
+        }
+
         map[key] = styles
         node = xpath.iterateNext()
       }
